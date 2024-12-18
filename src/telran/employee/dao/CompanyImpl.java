@@ -38,12 +38,10 @@ public class CompanyImpl implements Company {
     // O(n)
     @Override
     public Employee findEmployee(int id) {
-        for (Employee employee : employees) {
-            if (employee.getId() == id) {
-                return employee;
-            }
-        }
-        return null;
+        return employees.stream()
+                .filter(e -> e.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
     // O(1)
@@ -55,32 +53,26 @@ public class CompanyImpl implements Company {
     // O(n)
     @Override
     public double totalSalary() {
-        double sum = 0;
-        for (Employee employee : employees) {
-            sum += employee.calcSalary();
-        }
-        return sum;
+        return employees.stream()
+                .map(Employee::calcSalary)
+                .reduce(0., (acc, s) -> acc + s);
     }
 
     // O(n)
     @Override
     public double totalSales() {
-        double sum = 0;
-        for (Employee employee : employees) {
-            if (employee instanceof SalesManager sm) {
-                sum += sm.getSalesValue();
-            }
-        }
-        return sum;
+        return employees.stream()
+                .filter(e -> e instanceof SalesManager)
+                .map(e -> (SalesManager) e)
+                .map(SalesManager::getSalesValue)
+                .reduce(0., (acc, s) -> acc + s);
     }
 
     // O(n)
     @Override
     public void printEmployees() {
         System.out.println("=== " + COUNTRY + " ===");
-        for (Employee employee : employees) {
-            System.out.println(employee);
-        }
+        employees.forEach(System.out::println);
         System.out.println("=======================");
     }
 
@@ -97,12 +89,8 @@ public class CompanyImpl implements Company {
     }
 
     private Employee[] findEmployeesByPredicate(Predicate<Employee> predicate) {
-        List<Employee> res = new ArrayList<>();
-        for (Employee employee : employees) {
-            if (predicate.test(employee)) {
-                res.add(employee);
-            }
-        }
-        return res.toArray(new Employee[0]);
+        return employees.stream()
+                .filter(predicate)
+                .toArray(Employee[]::new);
     }
 }
